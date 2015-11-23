@@ -1,0 +1,16 @@
+{
+  "name": "jsimpler",
+  "version": "1.0.0",
+  "description": "JSimpler library is created to simplify the usage of the native JS",
+  "main": "jsimpler.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ostapgv/jsimpler.git"
+  },
+  "homepage": "https://github.com/ostapgv/jsimpler#readme",
+  "devDependencies": {
+    "jasmine": "^2.3.2",
+    "jquery": "^2.1.4",
+    "jsdom": "^7.0.2"
+  }
+}
