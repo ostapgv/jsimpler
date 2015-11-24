@@ -5,9 +5,7 @@ describe("JSimpler", function() {
   });
 
   describe("selector", function() {
-
-    beforeEach(function() {
-    });
+    "use strict";
 
     it('should select an empty array if the element does not exist in DOM', function() {
       var selector = '.some-element-not-in-the-dom';
@@ -21,7 +19,7 @@ describe("JSimpler", function() {
     });
 
     it('should select a DOM element with given ID', function() {
-      var id = 'divId';
+      var id = "divId";
       var expectedSelectedElement = $.makeArray($('#' + id));
       var selectedElement = $.makeArray(JSimpler('#' + id));
 
@@ -33,7 +31,7 @@ describe("JSimpler", function() {
     });
 
     it('should select DOM elements with a given class name', function() {
-      var className = '.infinum';
+      var className = ".infinum";
       var expectedHTMLElementsArray = $.makeArray($(className));
       var selectedElementsArray = $.makeArray(JSimpler(className));
 
@@ -46,7 +44,7 @@ describe("JSimpler", function() {
     });
 
     it('should select DOM elements with a given tag name', function() {
-      var tagName = 'p';
+      var tagName = "p";
       var expectedHTMLElementsArray = $.makeArray($(tagName));
       var selectedElementsArray = $.makeArray(JSimpler(tagName));
 
@@ -61,6 +59,29 @@ describe("JSimpler", function() {
       expect(function() {
         JSimpler(')(?/');
       }).toThrow();
+    });
+
+  });
+
+  describe('css', function() {
+    var J = JSimpler;
+    var $selectedElement;
+    var selectedElement;
+
+    beforeEach(function() {
+      J = JSimpler;
+      $selectedElement = J('#main-part');
+      selectedElement = $selectedElement[0];
+    });
+
+    it('should set a CSS attribute of an HTML element as the object of name/value pairs', function() {
+      $selectedElement.css("color", "blue");
+      expect($selectedElement.css('color')).toBe('blue');
+
+      $selectedElement.css({"color": "black", "background-color": "white"});
+      expect($selectedElement.css('color')).toBe('black');
+      expect($selectedElement.css('background-color')).toBe('white');
+
     });
 
   });

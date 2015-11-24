@@ -92,7 +92,7 @@ var JSimpler = (function() {
     // Executes callback for each selector
     each: function(callback) {
       for(var i=0, l=this.selection.length; i<l; i++) {
-        callback(i, this.match[i]);
+        callback(i, this.selection[i]);
       };
       return this;
     },
@@ -129,6 +129,26 @@ var JSimpler = (function() {
       this.each(function(i, e) {
         e.setAttribute(name, value);
       });
+      return this;
+    },
+
+    css: function(obj, value) {
+      if(typeof obj === "string" && typeof value === "string") {
+        this.each(function(i, e) {
+          e.style[obj] = value;
+        });
+      // If only the first parameter passed it should be an Object
+      } else if (typeof obj === "object" && typeof value === "undefined"){
+        this.each(function(i, e) {
+          for(var key in obj) {
+            e.style[key] = obj[key];
+          }
+        });
+      } else if (typeof obj === "string" && typeof value === "undefined"){
+        if(this.selection && this.selection.length == 1) {
+          return this.selection[0].style[obj];
+        }
+      }
       return this;
     }
 
