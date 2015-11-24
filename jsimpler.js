@@ -26,6 +26,10 @@ var JSimpler = (function() {
     init: function(selector) {
       var match, elem = [];
 
+      // Initializing default values
+      this.length = 0;
+      this.selection = [];
+
       // TODO Check if "window.document" object exist. (it doesn't work with the Jasmine)
       if (!window || !window.document) {
         throw new Error( "JSimpler requires a window with a document" );
@@ -46,7 +50,7 @@ var JSimpler = (function() {
               elem = document.createElement(tagName);
               this.length = 1;
               this[0] = elem;
-            return this;
+              return this;
             }
           }
 
@@ -58,7 +62,7 @@ var JSimpler = (function() {
           Array.prototype.push.apply(this, this.selection);
         }
       } catch(err) {
-        console.error(err);
+        throw err;
       }
 
     },

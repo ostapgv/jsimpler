@@ -60,7 +60,7 @@ describe("JSimpler", function() {
     it('should throw an expection for invalid selector', function() {
       expect(function() {
         JSimpler(')(?/');
-      }).toThrowError();
+      }).toThrow();
     });
 
   });
