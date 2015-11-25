@@ -145,7 +145,7 @@ var JSimpler = (function() {
           }
         });
       } else if (typeof obj === "string" && typeof value === "undefined"){
-        if(this.selection && this.selection.length == 1) {
+        if(this.selection && this.selection.length >= 1) {
           return this.selection[0].style[obj];
         }
       }
