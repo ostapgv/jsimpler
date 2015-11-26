@@ -66,6 +66,13 @@ describe('JSimpler', function() {
       }).toThrow();
     });
 
+    it('should allow a creation elements by the tag name', function() {
+      var $element = J('<div>');
+
+      expect($element.length).toBe(1);
+      expect($element[0] instanceof HTMLDivElement).toBe(true);
+    });
+
   });
 
 
@@ -93,21 +100,21 @@ describe('JSimpler', function() {
 
     it('should set multiple CSS properties of an HTML element', function() {
       $selectedElement.css({
-        'height': '100px',
+        'width': '800px',
         'display': 'block'
       });
 
       expect($selectedElement.css('display')).toBe('block');
-      expect($selectedElement.css('height')).toBe('100px');
+      expect($selectedElement.css('width')).toBe('800px');
     });
 
     it('should properly set CSS properties if called multiple times on different HTML elements', function() {
       var $anotherEl = J('.right-menu');
 
-      $selectedElement.css('height', '100px');
+      $selectedElement.css('width', '800px');
       $anotherEl.css('color', 'grey');
 
-      expect($selectedElement.css('height')).toBe('100px');
+      expect($selectedElement.css('width')).toBe('800px');
       expect($selectedElement.css('color')).not.toBe('grey');
       expect($anotherEl.css('color')).toBe('grey');
     });
@@ -175,6 +182,14 @@ describe('JSimpler', function() {
     it('should return false if a HTML element doesn\'t have a given css class', function() {
       $selectedElement.removeClass('hidden-tower');
       expect($selectedElement.hasClass('hidden-tower')).toBe(false);
+    });
+
+    it('should allow add few classes separated by whitespaces', function() {
+      expect(function(){
+        $selectedElement.addClass('first second ');
+      }).not.toThrow();
+      expect($selectedElement.hasClass('first')).toBe(true);
+      expect($selectedElement.hasClass('second')).toBe(true);
     });
 
   });
@@ -250,6 +265,130 @@ describe('JSimpler', function() {
       expect($selectedElement.prev()[0]).toBe(newElement);
     });
 
+    it('should return a value of a given HTML element', function() {
+      var $element = J('.input-class');
+      var element = $element[0];
+      var elementValue = $element.val();
+
+      expect(elementValue).toBe('unicorn');
+
+      element.value = 'pikachu';
+
+      elementValue = $element.val();
+      expect(elementValue).toBe('pikachu');
+    });
+
+    it('should set a value of a given HTML elements', function() {
+      var $element = J('.input-class');
+      var element = $element[0];
+      $element.val('grecki');
+      var elementValue = $element.val();
+
+      expect(elementValue).toBe(element.value);
+      expect(elementValue).toBe('grecki');
+    });
+
+    it('should not throw the exception if the target element is not in the DOM when calling remove()', function() {
+      var elementNotInTheDom = document.createElement('div');
+      expect(function() {
+        J(elementNotInTheDom).remove();
+      }).not.toThrow();
+    });
+
+    it('should not throw exception if the target element is not in the DOM when calling before() or after()', function() {
+      var elementNotInTheDom = document.createElement('div');
+      var newElement = document.createElement('h4');
+
+      expect(function() {
+        J(elementNotInTheDom).before(newElement);
+        J(elementNotInTheDom).after(newElement);
+      }).not.toThrow();
+    });
+
+    it('should add property/propierties to the set of matched elements through the prop() method', function() {
+      $selectedElement.prop('alt', 'alt');
+      expect(selectedElement.getAttribute('alt')).toBe('alt');
+
+      $selectedElement.prop({'alt': 'nextAlt', 'display': 'block'});
+      expect(selectedElement.getAttribute('alt')).toBe('nextAlt');
+      expect(selectedElement.getAttribute('display')).toBe('block');
+    });
+
+    it('should get property of matched element through the prop() method', function() {
+      $selectedElement.prop('alt', 'alter');
+      expect($selectedElement.prop('alt')).toBe('alter');
+
+      $selectedElement.prop({'alt': 'alterEgo', 'visibility': 'visible'});
+      expect($selectedElement.prop('alt')).toBe('alterEgo');
+      expect($selectedElement.prop('visibility')).toBe('visible');
+    });
+
+    it('should allow to insert JSimpler objects into each others', function() {
+      var $element = J('#domManipulations');
+      var element = $element[0];
+      var $elementNotInTheDom = J("<p>").prop("id", "added");
+
+      expect($("#domManipulations #added").length).toBe(0);
+
+      $element.append($elementNotInTheDom);
+
+      expect($("#domManipulations #added")[0]).toEqual($elementNotInTheDom[0]);
+    });
+
   });
+
+
+  describe('chaining', function() {
+    var $selectedElement, selectedElement;
+
+    beforeEach(function() {
+      $selectedElement = J('#chaining');
+      selectedElement = $selectedElement[0];
+    });
+
+    it('should allow to append JSimpler objects into each others few times', function() {
+      var $newFirstElement = J("<p>").prop("class", "p-element");
+      var $newSecondElement = J("<a>").prop({"class": "a-element", "href": "#qwe"});
+      expect(function(){
+        $selectedElement.append($newFirstElement.append($newSecondElement));
+      }).not.toThrow();
+
+      expect(document.querySelector("#chaining p.p-element")).toBe($newFirstElement[0]);
+      expect(document.querySelector("#chaining a.a-element").getAttribute("href")).toBe($newSecondElement.prop("href"));
+    });
+
+    it('should allow to combine methods applied to JSimpler objects', function() {
+      expect(function(){
+        $selectedElement.prepend(J("<p>")
+          .append("Lorem Ipsum is simply dummy text of the printing and typesetting industry.")
+          .addClass("p-class")
+          .css({
+            "color": "red",
+            "background-color": "green",
+          })
+          .prop("display", "block")
+          .append(J("<a>")
+            .append("LINK TEXT")
+            .css("color", "grey")
+            .prop({
+              "href": "#",
+              "title": "some title"
+            })
+          )
+        );
+      }).not.toThrow();
+
+      expect(document.querySelector("#chaining p.p-class").getAttribute("display")).toBe("block");
+      expect(document.querySelector("#chaining p.p-class").style.color).toBe("red");
+      expect(document.querySelector("#chaining p.p-class").style["background-color"]).toBe("green");
+
+      expect(document.querySelector("#chaining p.p-class a").style.color).toBe("grey");
+      expect(document.querySelector("#chaining p.p-class a").getAttribute("href")).toBe("#");
+      expect(document.querySelector("#chaining p.p-class a").getAttribute("title")).toBe("some title");
+    });
+
+  });
+
+
 
 });

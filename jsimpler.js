@@ -22,15 +22,65 @@ var JSimpler = (function() {
     return document.createElement(elementName).toString() != "[object HTMLUnknownElement]";
   }
 
+  // Check if the element is a Node Object
+  var _isNode = function(element) {
+    // 1 - ELEMENT_NODE, 9 - DOCUMENT_NODE, 11 - DOCUMENT_FRAGMENT_NODE
+    if (element.nodeType === 1 || element.nodeType === 9 || element.nodeType === 11) {
+      return true;
+    }
+    return false;
+  }
+
   // Add content into each mached elements, using insertion rules (insertBefore/appendChild)
-  var _addContent = function(self, content, action) {
+  var _addInto = function(self, content, action) {
     return self.each(function(that, e, i) {
-      // 1 - ELEMENT_NODE, 9 - DOCUMENT_NODE, 11 - DOCUMENT_FRAGMENT_NODE
-      if (e.nodeType === 1 || e.nodeType === 9 || e.nodeType === 11) {
+      if (content instanceof JSimpler) {
+        var l = content.length;
+        while (l--) {
+          e[action](content[l], e.firstElementChild);
+        }
+        return content;
+      }else if (_isNode(e)){
+        if (typeof content === "string") {
+          content = document.createTextNode(content);
+        }
         // The second parameter is only for the insertBefore(). It doesn't affect to the appendChild().
         e[action](content, e.firstElementChild);
+        return self;
       }
     });
+  }
+
+  // Add content near with the each mached element, using insertion rules (previousSibling/nextSibling)
+  var _addSibling = function(self, content, action) {
+    return self.each(function(that, e, i) {
+      if (e && e.parentNode && e.parentNode.insertBefore) {
+        e.parentNode.insertBefore(content, e[action]);
+      }
+    });
+  }
+
+  // Get/Set params using css() and prop() methods
+  var _param = function(self, obj, value, callback) {
+    // Get prop value by the name
+    if (typeof obj === "string" && typeof value === "undefined"){
+      if(self.length >= 1 && self[0]) {
+        return callback(self[0], obj, value, "GET");
+      }
+    }
+    // Set prop value
+    return self.each(function(that, e, i) {
+      // by name and value
+      if(typeof obj === "string" && typeof value === "string") {
+        callback(e, obj, value, "SET");
+      // by name:value pairs object
+      } else if (typeof obj === "object" && typeof value === "undefined"){
+        for(var key in obj) {
+          callback(e, key, obj[key], "SET");
+        }
+      }
+    });
+    return self;
   }
 
   // Get next/prev elements
@@ -76,15 +126,21 @@ var JSimpler = (function() {
               elem = document.createElement(tagName);
               this.length = 1;
               this[0] = elem;
+              this.selection = [elem];
               return this;
             }
           }
 
           //### Getting matched elements array ###
           // Storing array of selected DOM-elements
+          // TODO Delete this.selection. Object should not stores few copies of the same data
           this.selection = document.querySelectorAll(selector);
           // Storing selected DOM-elements to the wrapper object as the array-like object
           this.length = 0;
+          Array.prototype.push.apply(this, this.selection);
+
+        } else if (_isNode(selector)) {
+          this.selection = [selector];
           Array.prototype.push.apply(this, this.selection);
         }
       } catch(err) {
@@ -117,7 +173,7 @@ var JSimpler = (function() {
 
     // Executes callback for each selector
     each: function(callback) {
-      for(var i=0, l=this.selection.length; i<l; i++) {
+      for(var i=0, l=this.length; i<l; i++) {
         callback(this, this.selection[i], i);
       };
       return this;
@@ -146,36 +202,39 @@ var JSimpler = (function() {
     },
 
     // Set property to the element
-    prop: function(name, value) {
-      return this.each(function(self, e, i) {
-        e.setAttribute(name, value);
+    prop: function(obj, value) {
+      return _param(this, obj, value, function(e, obj, value, type) {
+        if (type === "GET") {
+          return e.getAttribute(obj);
+        } else if (type === "SET") {
+          e.setAttribute(obj, value);
+        }
       });
     },
 
     css: function(obj, value) {
-      if(typeof obj === "string" && typeof value === "string") {
-        return this.each(function(self, e, i) {
+      return _param(this, obj, value, function(e, obj, value, type) {
+        if (type === "GET") {
+          return e.style[obj];
+        } else if (type === "SET") {
           e.style[obj] = value;
-        });
-      // If only the first parameter passed it should be an Object
-      } else if (typeof obj === "object" && typeof value === "undefined"){
-        return this.each(function(self, e, i) {
-          for(var key in obj) {
-            e.style[key] = obj[key];
-          }
-        });
-      } else if (typeof obj === "string" && typeof value === "undefined"){
-        if(this.selection && this.selection.length >= 1) {
-          return this.selection[0].style[obj];
         }
-      }
-      return this;
+      });
     },
 
     // Add class to selected elements
     addClass: function(className) {
       return this.each(function(self, e, i) {
-        e.classList.add(className);
+        if(className.indexOf(' ') >= 0) {
+          var classNameArr = className.trim().split(' ');
+          var l = classNameArr.length;
+          var j = 0;
+          for (; j < l; j++) {
+            e.classList.add(classNameArr[j]);
+          }
+        } else {
+          e.classList.add(className);
+        }
       });
     },
 
@@ -225,39 +284,40 @@ var JSimpler = (function() {
 
     // Add the content to the BEGINING of each element in the set of matched elements
     prepend: function(content) {
-      return _addContent(this, content, "insertBefore");
+      return _addInto(this, content, "insertBefore");
     },
 
     // Add the content to the END of each element in the set of matched elements
     append: function(content) {
-      return _addContent(this, content, "appendChild");
-      //var curSelection;
-
-      /*
-      if(selector instanceof JSimpler){
-        curSelection = selector;
-      } else {
-        curSelection = new JSimpler.fn.init(selector);
-      }
-      this.each(function(self, e, i) {
-        e.appendChild(curSelection.get())
-      });
-      return this;
-      */
+      return _addInto(this, content, "appendChild");
     },
 
     // Insert content, specified by the parameter, before each element in the set of matched elements.
     before: function(content) {
-      return this.each(function(that, e, i) {
-        e.parentNode.insertBefore(content, e.previousSibling);
-      });
+      return _addSibling(this, content, "previousSibling");
     },
 
     // Insert content, specified by the parameter, after each element in the set of matched elements.
     after: function(content) {
-      return this.each(function(that, e, i) {
-        e.parentNode.insertBefore(content, e.nextSibling);
-      });
+      return _addSibling(this, content, "nextSibling");
+    },
+
+    // Return first matched value or set value in the set of matched elements
+    val: function(value) {
+      if(!value) {
+        var match;
+        this.each(function(that, e, i) {
+          if(e.value) {
+            match = e.value;
+            return;
+          }
+        });
+        return match;
+      } else {
+        return this.each(function(that, e, i) {
+          e.value = value;
+        });
+      }
     }
 
 
@@ -275,5 +335,4 @@ JSimpler.fn.extend({
     // do something
   }
 });
-
 //JSimpler("p").prop("style", "color: red;")
