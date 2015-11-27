@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+  <title>jsimpler test page</title>
+</head>
+<body>
+  <!-- include jasmine-run -->
+  <script type="text/javascript" src="http://daniellmb.github.com/jasmine-run/jasmine-2.0.0-run.js"></script>
+
+  <div id="wrapper">
+    <header id="pageHeader">
+      <h1>JSimple - js library for simplifying of the native js usage</h1>
+    </header>
+
+    <main id="mainPart" class="main-info">
+      <div id="divId"></div>
+
+      <div class="div-class"></div>
+
+      <div id="domManipulations">
+        <p>p</p>
+        <input type="text" class="input-class" value="unicorn">
+        <div id="toRemove"></div>
+      </div>
+
+      <div id="chaining">
+        <ul>
+          <li><a href="#">first</a></li>
+          <li><a href="#">second</a></li>
+          <li><a href="#">third</a></li>
+        </ul>
+      </div>
+
+      <p class="first-line-shift">
+        Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+      </p>
+    </main>
+
+    <aside role="sidebar" class="right-menu">
+      <ul>
+        <li><a href="#">HOME</a></li>
+        <li><a href="#">JSIMPLE API</a></li>
+        <li><a href="#">CONTACT</a></li>
+        <li><a href="#">ABOUT US</a></li>
+      </ul>
+    </aside>
+
+
+    <footer id="pageFooter">
+      <p>footer</p>
+    </footer>
+  </div>
+
+  <script type="text/javascript" src="./node_modules/jquery/dist/jquery.js"></script>
+  <script type="text/javascript" src="jsimpler.js"></script>
+  <script type="text/javascript" src="./spec/JSimplerSpec.js"></script>
+</body>
+</html>
