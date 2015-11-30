@@ -1,6 +1,18 @@
 describe('JSimpler', function() {
   'use strict';
 
+  var f;
+  beforeEach(function() {
+    f = jasmine.getFixtures();
+    f.fixturesPath = 'base/fixtures';
+    f.load('jsimpler.html');
+  });
+
+  afterEach(function() {
+    f.cleanUp();
+    f.clearCache();
+  });
+
   var J = JSimpler;
   var $selectedElement;
   var selectedElement;
@@ -9,36 +21,33 @@ describe('JSimpler', function() {
     expect(J).toBeDefined();
   });
 
-
   describe('Selector', function() {
 
     it('should select an empty array if the element does not exist in DOM', function() {
       var selector = '.some-element-not-in-the-dom';
 
       // We're calling $.makeArray because we need to transform jQuery result set into real array object
-      var expectedSelectedElement = $.makeArray($(selector));
-      var selectedElements = $.makeArray(J(selector));
+      var expectedSelectedElement = J.makeArray(document.querySelectorAll(selector));
+      var selectedElements = J.makeArray(J(selector));
 
       expect(selectedElements).toEqual(expectedSelectedElement);
       expect(selectedElements.length).toBe(0);
     });
 
     it('should select a DOM element with given ID', function() {
-      var id = 'divId';
-      var expectedSelectedElement = $.makeArray($('#' + id));
-      var selectedElement = $.makeArray(J('#' + id));
-
-      expect(selectedElement).toEqual(expectedSelectedElement);
+      var id = 'div-id';
+      var expectedSelectedElement = document.getElementById(id);
+      var selectedElement = J('#' + id);
       expect(selectedElement.length).toBe(1);
       expect(selectedElement[0] instanceof HTMLElement).toBe(true);
-      expect(selectedElement[0]).toBe(expectedSelectedElement[0]);
+      expect(selectedElement[0]).toBe(expectedSelectedElement);
       expect(selectedElement[0].id).toBe(id);
     });
 
     it('should select DOM elements with a given class name', function() {
       var className = '.infinum';
-      var expectedHTMLElementsArray = $.makeArray($(className));
-      var selectedElementsArray = $.makeArray(J(className));
+      var expectedHTMLElementsArray = J.makeArray(document.querySelectorAll(className));
+      var selectedElementsArray = J.makeArray(J(className));
 
       expect(selectedElementsArray.length).toBe(expectedHTMLElementsArray.length);
 
@@ -50,8 +59,8 @@ describe('JSimpler', function() {
 
     it('should select DOM elements with a given tag name', function() {
       var tagName = 'p';
-      var expectedHTMLElementsArray = $.makeArray($(tagName));
-      var selectedElementsArray = $.makeArray(J(tagName));
+      var expectedHTMLElementsArray = J.makeArray(document.querySelectorAll(tagName));
+      var selectedElementsArray = J.makeArray(J(tagName));
 
       expect(selectedElementsArray.length).toBe(expectedHTMLElementsArray.length);
 
@@ -79,7 +88,7 @@ describe('JSimpler', function() {
   describe('.css()', function() {
 
     beforeEach(function() {
-      $selectedElement = J('#mainPart');
+      $selectedElement = J('#main-part');
       selectedElement = $selectedElement[0];
     });
 
@@ -133,10 +142,10 @@ describe('JSimpler', function() {
   });
 
 
-  describe('class manipulations (addClass, removeClass, toggleClass, hasClass)', function() {
+  describe('Class Manipulations (addClass, removeClass, toggleClass, hasClass)', function() {
 
     beforeEach(function() {
-      $selectedElement = J('#mainPart');
+      $selectedElement = J('#main-part');
       selectedElement = $selectedElement[0];
     });
 
@@ -195,16 +204,16 @@ describe('JSimpler', function() {
   });
 
 
-  describe('dom manipulation', function() {
+  describe('Dom Manipulation', function() {
     var $selectedElement, selectedElement;
 
     beforeEach(function() {
-      $selectedElement = J('#domManipulations');
+      $selectedElement = J('#dom-manipulations');
       selectedElement = $selectedElement[0];
     });
 
     it('should be able to remove a HTML element', function() {
-      var $toRemoveElement = J('#toRemove');
+      var $toRemoveElement = J('#to-remove');
       var toRemoveElement = $toRemoveElement[0];
 
       expect(document.contains(toRemoveElement)).toBe(true);
@@ -219,7 +228,7 @@ describe('JSimpler', function() {
       parentElement.appendChild(childElement);
       selectedElement.appendChild(parentElement);
 
-      var bothElements = J("#domManipulations div");
+      var bothElements = J("#dom-manipulations div");
       bothElements.remove();
 
       expect(bothElements.length).toBe(0);
@@ -324,21 +333,21 @@ describe('JSimpler', function() {
     });
 
     it('should allow to insert JSimpler objects into each others', function() {
-      var $element = J('#domManipulations');
+      var $element = J('#dom-manipulations');
       var element = $element[0];
       var $elementNotInTheDom = J("<p>").prop("id", "added");
 
-      expect($("#domManipulations #added").length).toBe(0);
+      expect(document.querySelectorAll("#dom-manipulations #added").length).toBe(0);
 
       $element.append($elementNotInTheDom);
 
-      expect($("#domManipulations #added")[0]).toEqual($elementNotInTheDom[0]);
+      expect(document.querySelectorAll("#dom-manipulations #added")[0]).toEqual($elementNotInTheDom[0]);
     });
 
   });
 
 
-  describe('chaining', function() {
+  describe('Chaining', function() {
     var $selectedElement, selectedElement;
 
     beforeEach(function() {
@@ -389,6 +398,78 @@ describe('JSimpler', function() {
 
   });
 
+  describe('Event Listeners', function() {
+    var $selectedElement, selectedElement, methods;
+
+    beforeEach(function() {
+      methods = {
+        showLove: function() {
+          console.log('<3 JavaScript <3');
+        },
+        giveLove: function() {
+          logSmth.log('==> JavaScript ==>');
+          return '==> JavaScript ==>';
+        }
+      };
+
+      spyOn(methods, 'showLove');
+      spyOn(methods, 'giveLove');
+
+      $selectedElement = J('#event');
+      selectedElement = $selectedElement[0];
+    });
+
+    it('should be able to add a click event to an HTML element', function() {
+      $selectedElement.on('click', methods.showLove);
+
+      $selectedElement.click();
+
+      expect(methods.showLove).toHaveBeenCalled();
+    });
+
+    it('should be able to add the same event+callback two times to an HTML element', function() {
+      $selectedElement.on('click', methods.showLove);
+      $selectedElement.on('click', methods.showLove);
+
+      $selectedElement.click();
+
+      expect(methods.showLove.calls.count()).toEqual(2);
+    });
+
+    it('should be able to add the same callback for two different events to an HTML element', function() {
+      $selectedElement.on('click', methods.showLove);
+      $selectedElement.on('hover', methods.showLove);
+
+      $selectedElement.trigger('click');
+      $selectedElement.trigger('hover');
+
+      expect(methods.showLove.calls.count()).toEqual(2);
+    });
+
+    it('should be able to add two different callbacks for same event to an HTML element', function() {
+      $selectedElement.on('click', methods.showLove);
+      $selectedElement.on('click', methods.giveLove);
+
+      $selectedElement.trigger('click');
+
+      expect(methods.showLove.calls.count()).toEqual(1);
+      expect(methods.giveLove.calls.count()).toEqual(1);
+    });
+
+    it('should be able to remove one event handler of an HTML element', function() {
+      $selectedElement.off();
+
+      $selectedElement.on('click', methods.showLove);
+      $selectedElement.on('click', methods.giveLove);
+      $selectedElement.off('click', methods.showLove);
+
+      $selectedElement.click();
+
+      expect(methods.showLove.calls.count()).toEqual(0);
+      expect(methods.giveLove.calls.count()).toEqual(1);
+    });
+
+  });
 
 
 });

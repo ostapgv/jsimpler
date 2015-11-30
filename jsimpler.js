@@ -5,6 +5,11 @@
 
 var JSimpler = (function() {
 
+  var ua = window.navigator.userAgent;
+  var msie = ua.indexOf("MSIE ");
+  var isIE = msie > 0;
+  var eventEandlersStorage = {};
+
   // TODO use these RE to speed up selecting
   var idSel = /^#([\w-]+)$/,
       tagSel = /^(\w+)$/,
@@ -33,7 +38,7 @@ var JSimpler = (function() {
 
   // Add content into each mached elements, using insertion rules (insertBefore/appendChild)
   var _addInto = function(self, content, action) {
-    return self.each(function(that, e, i) {
+    return self.each(self, function(that, e, i) {
       if (content instanceof JSimpler) {
         var l = content.length;
         while (l--) {
@@ -53,7 +58,7 @@ var JSimpler = (function() {
 
   // Add content near with the each mached element, using insertion rules (previousSibling/nextSibling)
   var _addSibling = function(self, content, action) {
-    return self.each(function(that, e, i) {
+    return self.each(self, function(that, e, i) {
       if (e && e.parentNode && e.parentNode.insertBefore) {
         e.parentNode.insertBefore(content, e[action]);
       }
@@ -69,7 +74,7 @@ var JSimpler = (function() {
       }
     }
     // Set prop value
-    return self.each(function(that, e, i) {
+    return self.each(self, function(that, e, i) {
       // by name and value
       if(typeof obj === "string" && typeof value === "string") {
         callback(e, obj, value, "SET");
@@ -86,7 +91,7 @@ var JSimpler = (function() {
   // Get next/prev elements
   var _getElement = function(self, action) {
     var match = [];
-    self.each(function(that, e, i) {
+    self.each(self, function(that, e, i) {
       if(e[action] != null) {
         match = [e[action]];
         return;
@@ -163,20 +168,26 @@ var JSimpler = (function() {
       return first;
     },
 
-    // Extending wrapper prototype
-    extend: function(obj) {
-      for(var key in obj)
-        if(obj.hasOwnProperty(key))
-          this[key] = obj[key];
-      return this;
+    // Extending first passed object pataneter by others
+    extend: function() {
+      for(var i=1; i<arguments.length; i++) {
+        for(var key in arguments[i]) {
+          if(arguments[i].hasOwnProperty(key)) {
+            arguments[0][key] = arguments[i][key];
+          }
+        }
+      }
+      return arguments[0];
     },
 
-    // Executes callback for each selector
-    each: function(callback) {
-      for(var i=0, l=this.length; i<l; i++) {
-        callback(this, this.selection[i], i);
+    // Executes callback for each object
+    each: function(obj, callback) {
+      var i = 0;
+      var l = obj.length;
+      for(; i<l; i++) {
+        callback(obj, obj[i], i);
       };
-      return this;
+      return obj;
     },
 
     // Get elements selection array
@@ -224,7 +235,7 @@ var JSimpler = (function() {
 
     // Add class to selected elements
     addClass: function(className) {
-      return this.each(function(self, e, i) {
+      return this.each(this, function(self, e, i) {
         if(className.indexOf(' ') >= 0) {
           var classNameArr = className.trim().split(' ');
           var l = classNameArr.length;
@@ -240,14 +251,14 @@ var JSimpler = (function() {
 
     // Removes the specified class by the className
     removeClass: function(className) {
-      return this.each(function(self, e, i) {
+      return this.each(this, function(self, e, i) {
         e.classList.remove(className);
       });
     },
 
     // Toggle the specified class by the className
     toggleClass: function(className) {
-      return this.each(function(self, e, i) {
+      return this.each(this, function(self, e, i) {
         e.classList.toggle(className);
       });
     },
@@ -257,7 +268,7 @@ var JSimpler = (function() {
       className = className.trim();
       var classArr;
       var match = false;
-      this.each(function(self, e, i) {
+      this.each(this, function(self, e, i) {
         classArr = e.className.split(" ");
         if(classArr.indexOf(className) >= 0) {
           match = true;
@@ -269,7 +280,7 @@ var JSimpler = (function() {
 
     // Removes set of elements
     remove: function() {
-      return this.each(function(self, e, i) {
+      return this.each(this, function(self, e, i) {
         // If element has already been deleted
         if(e) {
           e.remove();
@@ -306,7 +317,7 @@ var JSimpler = (function() {
     val: function(value) {
       if(!value) {
         var match;
-        this.each(function(that, e, i) {
+        this.each(this, function(that, e, i) {
           if(e.value) {
             match = e.value;
             return;
@@ -314,7 +325,7 @@ var JSimpler = (function() {
         });
         return match;
       } else {
-        return this.each(function(that, e, i) {
+        return this.each(this, function(that, e, i) {
           e.value = value;
         });
       }
@@ -322,17 +333,127 @@ var JSimpler = (function() {
 
 
   };
+
+  // Static functions (dont need to create an JSimpler object instance)
+  JSimpler.makeArray = function(obj) {
+    return Array.prototype.slice.call(obj);
+  };
+
+
+  JSimpler.hendler = function(){
+    return new JSimpler.hendler
+  }
+
+
+
+  // Event Listeners
+  JSimpler.fn.extend(JSimpler.fn, {
+
+    // Original parameters (types, selector, data, handler)
+    // At first it will contain only (types, handler)
+    on: function(types, handler) {
+      return this.each(this, function(self, e, i) {
+        if(typeof types === "string" && typeof handler === "function") {
+          var typesArr = types.split(" ");
+          var i = 0;
+          var l = typesArr.length;
+
+          var newHandler = handler.bind({});
+
+          // Saving original hendlers and cloned handler objects
+          if(!eventEandlersStorage[e]) {
+            eventEandlersStorage[e] = [typesArr[i]];
+          }
+          if(!eventEandlersStorage[e][typesArr[i]]) {
+            eventEandlersStorage[e][typesArr[i]] = {};
+          }
+          var handlersObj = eventEandlersStorage[e][typesArr[i]];
+          if(!handlersObj[handler]) {
+            handlersObj[handler] = [];
+          }
+          handlersObj[handler].push(newHandler); // Example: eventEandlersStorage[divNodeObj]['click'][originalHendler] = [newHandler1, newHandler2, ...]
+
+          for(; i < l; i++){
+            if(isIE) {
+              e.attachEvent( "on" + typesArr[i], newHandler);
+            } else {
+              e.addEventListener(typesArr[i], newHandler, false);
+            }
+          }
+        }
+      });
+    },
+
+    off: function(types, handler) {
+      return this.each(this, function(self, e, i) {
+        if(typeof types === "string" && typeof handler === "function") {
+          var typesArr = types.split(" ");
+
+          if(eventEandlersStorage[e]) {
+            var i = 0;
+            var l = typesArr.length;
+            for(; i < l; i++){
+              if(eventEandlersStorage[e] && eventEandlersStorage[e][typesArr[i]] && eventEandlersStorage[e][typesArr[i]][handler]) {
+                //console.log(eventEandlersStorage[e][typesArr[i]]);
+                var newHandlersArr = eventEandlersStorage[e][typesArr[i]][handler];
+                var j = 0;
+                var len = newHandlersArr.length;
+                for(; j < len; j++){
+                  e.removeEventListener(typesArr[i], newHandlersArr[j], false);
+                }
+              }
+            }
+
+          }
+
+        }
+      });
+    },
+
+    // Original parameters (type, data)
+    trigger: function(type, data) {
+      return this.each(this, function(self, e, i) {
+        var event; // The custom event that will be created
+
+        if (document.createEvent) {
+          event = document.createEvent("HTMLEvents");
+          event.initEvent(type, true, true);
+        } else {
+          event = document.createEventObject();
+          event.eventType = type;
+        }
+
+        event.eventName = type;
+
+        if (document.createEvent) {
+          e.dispatchEvent(event);
+        } else {
+          e.fireEvent("on" + event.eventType, event);
+        }
+      });
+    }
+
+
+  });
+
+  JSimpler.fn.each( ("blur focus focusin focusout load resize scroll unload click dblclick " +
+    "mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
+    "change select submit keydown keypress keyup error contextmenu").split(" "), function(that, name, i) {
+    //console.log('i='+i+' e='+e);
+
+    // Handle event binding
+    JSimpler.fn[name] = function(data, handler) {
+      return arguments.length > 0 ?
+        this.on(name, handler) :
+        this.trigger(name);
+    };
+
+  });
+
+
   // Setting up newly created object prototype to the wrapper's protopype
   JSimpler.fn.init.prototype = JSimpler.fn;
 
   return JSimpler;
 
 })();
-
-// Example of extending usage
-JSimpler.fn.extend({
-  newMethod: function() {
-    // do something
-  }
-});
-//JSimpler("p").prop("style", "color: red;")
