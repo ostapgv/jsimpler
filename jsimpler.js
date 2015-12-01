@@ -8,7 +8,7 @@ var JSimpler = (function() {
   var ua = window.navigator.userAgent;
   var msie = ua.indexOf("MSIE ");
   var isIE = msie > 0;
-  var eventEandlersStorage = {};
+  var elemHandlers = {};
 
   // TODO use these RE to speed up selecting
   var idSel = /^#([\w-]+)$/,
@@ -166,6 +166,22 @@ var JSimpler = (function() {
       }
       first.length = j;
       return first;
+    },
+
+    keys: function(o) {
+      if (Object.keys) {
+        return Object.keys(o);
+      }
+      if (o !== Object(o)) {
+        throw new TypeError('Object.keys called on a non-object');
+      }
+      var k=[],p;
+      for (p in o) {
+        if (Object.prototype.hasOwnProperty.call(o, p)) {
+          k.push(p);
+        }
+      }
+      return k;
     },
 
     // Extending first passed object pataneter by others
@@ -349,31 +365,47 @@ var JSimpler = (function() {
   // Event Listeners
   JSimpler.fn.extend(JSimpler.fn, {
 
+    getCurrentHandlers: function(handlersObj, handler) {
+      if(handlersObj && handler) {
+        var i = 0;
+        var l = handlersObj.length;
+        for(; i < l; i++) {
+          if(handler === handlersObj[i].handler) {
+            return handlersObj[i];
+          }
+        }
+      }
+    },
+
     // Original parameters (types, selector, data, handler)
     // At first it will contain only (types, handler)
     on: function(types, handler) {
       return this.each(this, function(self, e, i) {
         if(typeof types === "string" && typeof handler === "function") {
           var typesArr = types.split(" ");
+          var handlersObj;
           var i = 0;
           var l = typesArr.length;
 
-          var newHandler = handler.bind({});
+          for(; i < l; i++) {
+            var newHandler = handler.bind({});
 
-          // Saving original hendlers and cloned handler objects
-          if(!eventEandlersStorage[e]) {
-            eventEandlersStorage[e] = [typesArr[i]];
-          }
-          if(!eventEandlersStorage[e][typesArr[i]]) {
-            eventEandlersStorage[e][typesArr[i]] = {};
-          }
-          var handlersObj = eventEandlersStorage[e][typesArr[i]];
-          if(!handlersObj[handler]) {
-            handlersObj[handler] = [];
-          }
-          handlersObj[handler].push(newHandler); // Example: eventEandlersStorage[divNodeObj]['click'][originalHendler] = [newHandler1, newHandler2, ...]
+            // Saving original hendlers and cloned handler objects
+            if(!elemHandlers[e]) {
+              elemHandlers[e] = {};
+            }
+            if(!elemHandlers[e][typesArr[i]]) {
+              elemHandlers[e][typesArr[i]] = [];
+            }
 
-          for(; i < l; i++){
+            handlersObj = elemHandlers[e][typesArr[i]];
+            var currentHandlers = self.getCurrentHandlers(handlersObj, handler);
+            if(currentHandlers) {
+              currentHandlers.newHandlers.push(newHandler);
+            } else {
+              handlersObj.push({handler: handler, newHandlers: [newHandler]}); // Example: elemHandlers[divNodeObj]['click'][originalHendler] = [newHandler1, newHandler2, ...]
+            }
+
             if(isIE) {
               e.attachEvent( "on" + typesArr[i], newHandler);
             } else {
@@ -381,31 +413,64 @@ var JSimpler = (function() {
             }
           }
         }
+        console.log("!!!!! " + JSON.stringify(elemHandlers[e]));
       });
     },
 
     off: function(types, handler) {
       return this.each(this, function(self, e, i) {
+        var typesArr;
+        var handlersObj;
+        var currentHandlers;
         if(typeof types === "string" && typeof handler === "function") {
-          var typesArr = types.split(" ");
+          typesArr = types.split(" ");
+          //handlersObj = {handler};
+        } else if(typeof types === "string" && typeof handler === "undefined") {
+          typesArr = types.split(" ");
+        } else if(typeof types === "undefined") {
+          if(elemHandlers[e]) {
+            typesArr = self.keys(elemHandlers[e]);
+          }
+        } else return;
 
-          if(eventEandlersStorage[e]) {
-            var i = 0;
-            var l = typesArr.length;
-            for(; i < l; i++){
-              if(eventEandlersStorage[e] && eventEandlersStorage[e][typesArr[i]] && eventEandlersStorage[e][typesArr[i]][handler]) {
-                //console.log(eventEandlersStorage[e][typesArr[i]]);
-                var newHandlersArr = eventEandlersStorage[e][typesArr[i]][handler];
-                var j = 0;
-                var len = newHandlersArr.length;
-                for(; j < len; j++){
-                  e.removeEventListener(typesArr[i], newHandlersArr[j], false);
+        if(elemHandlers[e]) {
+          var i = 0;
+          var l = typesArr.length;
+          // Method names cycle
+          for(; i < l; i++) {
+            handlersObj = elemHandlers[e][typesArr[i]];
+            if(!handlersObj) {
+              continue;
+            }
+            currentHandlers = self.getCurrentHandlers(handlersObj, handler);
+
+            // if we don't have passed 'handler' parameter
+            if (!handler) {
+              var k = 0;
+              var handlerObjLen = handlersObj.length;
+              for(; k < handlerObjLen; k++) {
+                var r = 0;
+                var newHandlersLen = handlersObj[k].newHandlers.length;
+                for(; r < newHandlersLen; r++) {
+                  e.removeEventListener(typesArr[i], handlersObj[k].newHandlers[r], false);
                 }
+              }
+            // if we have a mached handler
+            } else if(currentHandlers && currentHandlers.newHandlers) {
+              var k = 0;
+              var newHandlersLen = currentHandlers.newHandlers.length;
+              for(; k < newHandlersLen; k++) {
+                e.removeEventListener(typesArr[i], currentHandlers.newHandlers[k], false);
               }
             }
 
+            if(typeof types === "string" && typeof handler === "undefined") {
+              elemHandlers[e][typesArr[i]] = [];
+            }
           }
-
+        }
+        if(typeof types === "undefined") {
+          elemHandlers[e] = {};
         }
       });
     },

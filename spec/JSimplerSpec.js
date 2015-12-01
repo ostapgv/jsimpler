@@ -458,15 +458,16 @@ describe('JSimpler', function() {
 
     it('should be able to remove one event handler of an HTML element', function() {
       $selectedElement.off();
-
+      console.log("_____________________________________");
       $selectedElement.on('click', methods.showLove);
       $selectedElement.on('click', methods.giveLove);
-      $selectedElement.off('click', methods.showLove);
+      $selectedElement.off('click', methods.giveLove);
+      $selectedElement.on('dblclick', methods.giveLove);
 
       $selectedElement.click();
 
-      expect(methods.showLove.calls.count()).toEqual(0);
-      expect(methods.giveLove.calls.count()).toEqual(1);
+      expect(methods.showLove.calls.count()).toEqual(1);
+      expect(methods.giveLove.calls.count()).toEqual(0);
     });
 
   });
