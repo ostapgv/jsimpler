@@ -13,12 +13,12 @@ describe('JSimpler', function() {
     f.clearCache();
   });
 
-  var J = JSimpler;
+  var j = JSimpler;
   var $selectedElement;
   var selectedElement;
 
   it('should be defined', function() {
-    expect(J).toBeDefined();
+    expect(j).toBeDefined();
   });
 
   describe('Selector', function() {
@@ -27,8 +27,8 @@ describe('JSimpler', function() {
       var selector = '.some-element-not-in-the-dom';
 
       // We're calling $.makeArray because we need to transform jQuery result set into real array object
-      var expectedSelectedElement = J.makeArray(document.querySelectorAll(selector));
-      var selectedElements = J.makeArray(J(selector));
+      var expectedSelectedElement = j.makeArray(document.querySelectorAll(selector));
+      var selectedElements = j.makeArray(j(selector));
 
       expect(selectedElements).toEqual(expectedSelectedElement);
       expect(selectedElements.length).toBe(0);
@@ -37,7 +37,7 @@ describe('JSimpler', function() {
     it('should select a DOM element with given ID', function() {
       var id = 'div-id';
       var expectedSelectedElement = document.getElementById(id);
-      var selectedElement = J('#' + id);
+      var selectedElement = j('#' + id);
       expect(selectedElement.length).toBe(1);
       expect(selectedElement[0] instanceof HTMLElement).toBe(true);
       expect(selectedElement[0]).toBe(expectedSelectedElement);
@@ -46,8 +46,8 @@ describe('JSimpler', function() {
 
     it('should select DOM elements with a given class name', function() {
       var className = '.infinum';
-      var expectedHTMLElementsArray = J.makeArray(document.querySelectorAll(className));
-      var selectedElementsArray = J.makeArray(J(className));
+      var expectedHTMLElementsArray = j.makeArray(document.querySelectorAll(className));
+      var selectedElementsArray = j.makeArray(j(className));
 
       expect(selectedElementsArray.length).toBe(expectedHTMLElementsArray.length);
 
@@ -59,8 +59,8 @@ describe('JSimpler', function() {
 
     it('should select DOM elements with a given tag name', function() {
       var tagName = 'p';
-      var expectedHTMLElementsArray = J.makeArray(document.querySelectorAll(tagName));
-      var selectedElementsArray = J.makeArray(J(tagName));
+      var expectedHTMLElementsArray = j.makeArray(document.querySelectorAll(tagName));
+      var selectedElementsArray = j.makeArray(j(tagName));
 
       expect(selectedElementsArray.length).toBe(expectedHTMLElementsArray.length);
 
@@ -71,12 +71,12 @@ describe('JSimpler', function() {
 
     it('should throw an expection for invalid selector', function() {
       expect(function() {
-        J(')(?/');
+        j(')(?/');
       }).toThrow();
     });
 
     it('should allow a creation elements by the tag name', function() {
-      var $element = J('<div>');
+      var $element = j('<div>');
 
       expect($element.length).toBe(1);
       expect($element[0] instanceof HTMLDivElement).toBe(true);
@@ -88,7 +88,7 @@ describe('JSimpler', function() {
   describe('.css()', function() {
 
     beforeEach(function() {
-      $selectedElement = J('#main-part');
+      $selectedElement = j('#main-part');
       selectedElement = $selectedElement[0];
     });
 
@@ -118,7 +118,7 @@ describe('JSimpler', function() {
     });
 
     it('should properly set CSS properties if called multiple times on different HTML elements', function() {
-      var $anotherEl = J('.right-menu');
+      var $anotherEl = j('.right-menu');
 
       $selectedElement.css('width', '800px');
       $anotherEl.css('color', 'grey');
@@ -129,8 +129,8 @@ describe('JSimpler', function() {
     });
 
     it('should return first CSS property if multiple elements selector applied', function() {
-      var $li = J('.right-menu li');
-      var $firstLi = J('.right-menu li:first-child');
+      var $li = j('.right-menu li');
+      var $firstLi = j('.right-menu li:first-child');
 
       $li.css('color', 'yellow');
       $firstLi.css('color', 'black');
@@ -145,7 +145,7 @@ describe('JSimpler', function() {
   describe('Class Manipulations (addClass, removeClass, toggleClass, hasClass)', function() {
 
     beforeEach(function() {
-      $selectedElement = J('#main-part');
+      $selectedElement = j('#main-part');
       selectedElement = $selectedElement[0];
     });
 
@@ -208,12 +208,12 @@ describe('JSimpler', function() {
     var $selectedElement, selectedElement;
 
     beforeEach(function() {
-      $selectedElement = J('#dom-manipulations');
+      $selectedElement = j('#dom-manipulations');
       selectedElement = $selectedElement[0];
     });
 
     it('should be able to remove a HTML element', function() {
-      var $toRemoveElement = J('#to-remove');
+      var $toRemoveElement = j('#to-remove');
       var toRemoveElement = $toRemoveElement[0];
 
       expect(document.contains(toRemoveElement)).toBe(true);
@@ -228,7 +228,7 @@ describe('JSimpler', function() {
       parentElement.appendChild(childElement);
       selectedElement.appendChild(parentElement);
 
-      var bothElements = J("#dom-manipulations div");
+      var bothElements = j('#dom-manipulations div');
       bothElements.remove();
 
       expect(bothElements.length).toBe(0);
@@ -275,7 +275,7 @@ describe('JSimpler', function() {
     });
 
     it('should return a value of a given HTML element', function() {
-      var $element = J('.input-class');
+      var $element = j('.input-class');
       var element = $element[0];
       var elementValue = $element.val();
 
@@ -288,7 +288,7 @@ describe('JSimpler', function() {
     });
 
     it('should set a value of a given HTML elements', function() {
-      var $element = J('.input-class');
+      var $element = j('.input-class');
       var element = $element[0];
       $element.val('grecki');
       var elementValue = $element.val();
@@ -300,7 +300,7 @@ describe('JSimpler', function() {
     it('should not throw the exception if the target element is not in the DOM when calling remove()', function() {
       var elementNotInTheDom = document.createElement('div');
       expect(function() {
-        J(elementNotInTheDom).remove();
+        j(elementNotInTheDom).remove();
       }).not.toThrow();
     });
 
@@ -309,8 +309,8 @@ describe('JSimpler', function() {
       var newElement = document.createElement('h4');
 
       expect(function() {
-        J(elementNotInTheDom).before(newElement);
-        J(elementNotInTheDom).after(newElement);
+        j(elementNotInTheDom).before(newElement);
+        j(elementNotInTheDom).after(newElement);
       }).not.toThrow();
     });
 
@@ -332,16 +332,16 @@ describe('JSimpler', function() {
       expect($selectedElement.prop('visibility')).toBe('visible');
     });
 
-    it('should allow to insert JSimpler objects into each others', function() {
-      var $element = J('#dom-manipulations');
+    it('should allow to insert jSimpler objects into each others', function() {
+      var $element = j('#dom-manipulations');
       var element = $element[0];
-      var $elementNotInTheDom = J("<p>").prop("id", "added");
+      var $elementNotInTheDom = j('<p>').prop('id', 'added');
 
-      expect(document.querySelectorAll("#dom-manipulations #added").length).toBe(0);
+      expect(document.querySelectorAll('#dom-manipulations #added').length).toBe(0);
 
       $element.append($elementNotInTheDom);
 
-      expect(document.querySelectorAll("#dom-manipulations #added")[0]).toEqual($elementNotInTheDom[0]);
+      expect(document.querySelectorAll('#dom-manipulations #added')[0]).toEqual($elementNotInTheDom[0]);
     });
 
   });
@@ -351,52 +351,53 @@ describe('JSimpler', function() {
     var $selectedElement, selectedElement;
 
     beforeEach(function() {
-      $selectedElement = J('#chaining');
+      $selectedElement = j('#chaining');
       selectedElement = $selectedElement[0];
     });
 
     it('should allow to append JSimpler objects into each others few times', function() {
-      var $newFirstElement = J("<p>").prop("class", "p-element");
-      var $newSecondElement = J("<a>").prop({"class": "a-element", "href": "#qwe"});
+      var $newFirstElement = j('<p>').prop('class', 'p-element');
+      var $newSecondElement = j('<a>').prop({'class': 'a-element', 'href': '#qwe'});
       expect(function(){
         $selectedElement.append($newFirstElement.append($newSecondElement));
       }).not.toThrow();
 
-      expect(document.querySelector("#chaining p.p-element")).toBe($newFirstElement[0]);
-      expect(document.querySelector("#chaining a.a-element").getAttribute("href")).toBe($newSecondElement.prop("href"));
+      expect(document.querySelector('#chaining p.p-element')).toBe($newFirstElement[0]);
+      expect(document.querySelector('#chaining a.a-element').getAttribute('href')).toBe($newSecondElement.prop('href'));
     });
 
     it('should allow to combine methods applied to JSimpler objects', function() {
       expect(function(){
-        $selectedElement.prepend(J("<p>")
-          .append("Lorem Ipsum is simply dummy text of the printing and typesetting industry.")
-          .addClass("p-class")
+        $selectedElement.prepend(j('<p>')
+          .append('Lorem Ipsum is simply dummy text of the printing and typesetting industry.')
+          .addClass('p-class')
           .css({
-            "color": "red",
-            "background-color": "green",
+            'color': 'red',
+            'background-color': 'green',
           })
-          .prop("display", "block")
-          .append(J("<a>")
-            .append("LINK TEXT")
-            .css("color", "grey")
+          .prop('display', 'block')
+          .append(j('<a>')
+            .append('LINK TEXT')
+            .css('color', 'grey')
             .prop({
-              "href": "#",
-              "title": "some title"
+              'href': '#',
+              'title': 'some title'
             })
           )
         );
       }).not.toThrow();
 
-      expect(document.querySelector("#chaining p.p-class").getAttribute("display")).toBe("block");
-      expect(document.querySelector("#chaining p.p-class").style.color).toBe("red");
-      expect(document.querySelector("#chaining p.p-class").style["background-color"]).toBe("green");
+      expect(document.querySelector('#chaining p.p-class').getAttribute('display')).toBe('block');
+      expect(document.querySelector('#chaining p.p-class').style.color).toBe('red');
+      expect(document.querySelector('#chaining p.p-class').style['background-color']).toBe('green');
 
-      expect(document.querySelector("#chaining p.p-class a").style.color).toBe("grey");
-      expect(document.querySelector("#chaining p.p-class a").getAttribute("href")).toBe("#");
-      expect(document.querySelector("#chaining p.p-class a").getAttribute("title")).toBe("some title");
+      expect(document.querySelector('#chaining p.p-class a').style.color).toBe('grey');
+      expect(document.querySelector('#chaining p.p-class a').getAttribute('href')).toBe('#');
+      expect(document.querySelector('#chaining p.p-class a').getAttribute('title')).toBe('some title');
     });
 
   });
+
 
   describe('Event Listeners', function() {
     var $selectedElement, selectedElement, methods;
@@ -415,7 +416,7 @@ describe('JSimpler', function() {
       spyOn(methods, 'showLove');
       spyOn(methods, 'giveLove');
 
-      $selectedElement = J('#event');
+      $selectedElement = j('#event');
       selectedElement = $selectedElement[0];
     });
 
@@ -458,7 +459,6 @@ describe('JSimpler', function() {
 
     it('should be able to remove one event handler of an HTML element', function() {
       $selectedElement.off();
-      console.log("_____________________________________");
       $selectedElement.on('click', methods.showLove);
       $selectedElement.on('click', methods.giveLove);
       $selectedElement.off('click', methods.giveLove);
@@ -470,7 +470,152 @@ describe('JSimpler', function() {
       expect(methods.giveLove.calls.count()).toEqual(0);
     });
 
+    it('should be able to remove all events of a HTML element', function() {
+      $selectedElement.off();
+
+      $selectedElement.on('click', methods.showLove);
+      $selectedElement.on('click', methods.giveLove);
+      $selectedElement.on('hover', methods.showLove);
+
+      $selectedElement.off();
+
+      var eventHover = new Event('hover');
+      var eventClick = new Event('click');
+
+      selectedElement.dispatchEvent(eventClick);
+      selectedElement.dispatchEvent(eventHover);
+
+      expect(methods.showLove).not.toHaveBeenCalled();
+      expect(methods.giveLove).not.toHaveBeenCalled();
+    });
+
+    it('should be able to add handler for few events at once', function() {
+      $selectedElement.off();
+
+      $selectedElement.on('click dblclick', methods.showLove);
+      $selectedElement.on('click', methods.giveLove);
+
+      $selectedElement.click().dblclick();
+
+      expect(methods.showLove.calls.count()).toEqual(2);
+      expect(methods.giveLove.calls.count()).toEqual(1);
+    });
+
+    it('should trigger a click event on a HTML element', function() {
+      $selectedElement.off();
+      $selectedElement.on('click', methods.showLove);
+
+      $selectedElement.trigger('click');
+
+      expect(methods.showLove.calls.count()).toBe(1);
+    });
+
+    it('should delegate an event to elements with a given css class name', function() {
+      $selectedElement.delegate('.ev', 'click', methods.showLove);
+      j('.ev').trigger('click');
+
+      expect(methods.showLove.calls.count()).toEqual(1);
+    });
+
+    // TODO fix
+    it('should not delegate an event to elements without a given css class name', function() {
+      $selectedElement.delegate('.ev', 'click', methods.showLove);
+
+      j('.other-ev').trigger('click');
+      j('.ev').trigger('click');
+
+      //expect(methods.showLove.calls.count()).toEqual(1);
+    });
+
+    // TODO fix
+    it('should delegate an event to elements that are added to the DOM to after delegate call', function() {
+      //$selectedElement.delegate('.new-element-class', 'click', methods.showLove);
+
+      //var newElement = document.createElement('div');
+      //newElement.className = 'new-element-class';
+      //$selectedElement.append(newElement);
+
+      //j(newElement).trigger('click');
+
+      j('#event table').delegate('.new-element-class', 'click', methods.showLove);
+      var tr = j('<tr>')
+          .addClass('new-element-class')
+          .append(
+            j('<td>').append('second row')
+          );
+      j('#event table').append(tr);
+      tr.trigger('click');
+
+      //expect(methods.showLove.calls.count()).toEqual(1);
+      //expect(methods.showLove.calls.count()).toEqual(1);
+    });
+
+
   });
 
+  describe('Helper Function', function() {
+    var cat, dog, bound;
+
+    beforeEach(function() {
+      //$selectedElement = j('#helpers');
+      //selectedElement = $selectedElement[0];
+
+      cat = {
+        happiness: 0,
+
+        makeHappier: function(value, ectraHappiness) {
+          this.happiness += value || 1;
+          this.happiness += ectraHappiness * 10 || 0;
+          return this.happiness;
+        },
+
+        checkHappiness: function() {
+          return this.happiness;
+        }
+      };
+
+      dog = { happiness: 10};
+
+    });
+
+    it('bind(fun, context) should pass the context to the function',function(){
+      cat.makeHappier();
+      expect(cat.checkHappiness()).toEqual(1);
+
+      bound = j.bind(cat.checkHappiness, dog);
+      expect(bound()).toEqual(10);
+
+    });
+
+    it('bind(fun, context [, params..]) should pass the context with parameters to the function',function(){
+      cat.makeHappier();
+      expect(cat.checkHappiness()).toEqual(1);
+
+      bound = j.bind(cat.makeHappier, dog, 100);
+      expect(bound()).toEqual(110);
+
+      bound = j.bind(cat.makeHappier, dog, 100);
+      // Adding aditional parameter
+      expect(bound(10)).toEqual(310);
+    });
+
+    it('bind(fun, context) should return a function with prototype of context object',function(){
+      var Animal = function() {};
+
+      bound = j.bind(Animal, {});
+      expect(bound.prototype.constructor).toBe(Animal);
+    });
+
+    it("filter() should create new array with all elements checked by callback function", function () {
+      var arr = [0, 1, 2, 3];
+      var result = j.filter(arr, function(value, index, array) {
+        return value % 2 === 0;
+      });
+      expect(arr).toEqual([0, 1, 2, 3]);
+      expect(result).toEqual([0, 2]);
+    });
+
+
+  });
 
 });

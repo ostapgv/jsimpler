@@ -6,7 +6,7 @@
 var JSimpler = (function() {
 
   var ua = window.navigator.userAgent;
-  var msie = ua.indexOf("MSIE ");
+  var msie = ua.indexOf('MSIE ');
   var isIE = msie > 0;
   var elemHandlers = {};
 
@@ -18,14 +18,14 @@ var JSimpler = (function() {
   // Wrapper
   var JSimpler = function(selector) {
     return new JSimpler.fn.init(selector);
-  }
+  };
 
-  // ### Common abstract methods starts with "_" ###
+  // ### Common abstract methods starts with '_' ###
 
   // Check if the HTML element name is valid
   var _isValidElementName = function(elementName) {
-    return document.createElement(elementName).toString() != "[object HTMLUnknownElement]";
-  }
+    return document.createElement(elementName).toString() != '[object HTMLUnknownElement]';
+  };
 
   // Check if the element is a Node Object
   var _isNode = function(element) {
@@ -34,7 +34,7 @@ var JSimpler = (function() {
       return true;
     }
     return false;
-  }
+  };
 
   // Add content into each mached elements, using insertion rules (insertBefore/appendChild)
   var _addInto = function(self, content, action) {
@@ -46,7 +46,7 @@ var JSimpler = (function() {
         }
         return content;
       }else if (_isNode(e)){
-        if (typeof content === "string") {
+        if (typeof content === 'string') {
           content = document.createTextNode(content);
         }
         // The second parameter is only for the insertBefore(). It doesn't affect to the appendChild().
@@ -54,7 +54,7 @@ var JSimpler = (function() {
         return self;
       }
     });
-  }
+  };
 
   // Add content near with the each mached element, using insertion rules (previousSibling/nextSibling)
   var _addSibling = function(self, content, action) {
@@ -63,42 +63,41 @@ var JSimpler = (function() {
         e.parentNode.insertBefore(content, e[action]);
       }
     });
-  }
+  };
 
   // Get/Set params using css() and prop() methods
   var _param = function(self, obj, value, callback) {
     // Get prop value by the name
-    if (typeof obj === "string" && typeof value === "undefined"){
+    if (typeof obj === 'string' && typeof value === 'undefined'){
       if(self.length >= 1 && self[0]) {
-        return callback(self[0], obj, value, "GET");
+        return callback(self[0], obj, value, 'GET');
       }
     }
     // Set prop value
     return self.each(self, function(that, e, i) {
       // by name and value
-      if(typeof obj === "string" && typeof value === "string") {
-        callback(e, obj, value, "SET");
+      if(typeof obj === 'string' && typeof value === 'string') {
+        callback(e, obj, value, 'SET');
       // by name:value pairs object
-      } else if (typeof obj === "object" && typeof value === "undefined"){
+      } else if (typeof obj === 'object' && typeof value === 'undefined'){
         for(var key in obj) {
-          callback(e, key, obj[key], "SET");
+          callback(e, key, obj[key], 'SET');
         }
       }
     });
-    return self;
-  }
+  };
 
   // Get next/prev elements
   var _getElement = function(self, action) {
     var match = [];
     self.each(self, function(that, e, i) {
-      if(e[action] != null) {
+      if(e[action] !== null) {
         match = [e[action]];
         return;
       }
     });
     return match;
-  }
+  };
 
 
   JSimpler.fn = JSimpler.prototype = {
@@ -111,9 +110,9 @@ var JSimpler = (function() {
       this.length = 0;
       this.selection = [];
 
-      // TODO Check if "window.document" object exist. (it doesn't work with the Jasmine)
+      // TODO Check if 'window.document' object exist. (it doesn't work with the Jasmine)
       if (!window || !window.document) {
-        throw new Error( "JSimpler requires a window with a document" );
+        throw new Error( 'JSimpler requires a window with a document' );
       }
 
       if (!selector) {
@@ -121,10 +120,10 @@ var JSimpler = (function() {
       }
 
       try {
-        if (typeof selector === "string") {
+        if (typeof selector === 'string') {
 
           //### New element creation ###
-          if ( selector[0] === "<" && selector[ selector.length - 1 ] === ">" && selector.length >= 3 ) {
+          if ( selector[0] === '<' && selector[ selector.length - 1 ] === '>' && selector.length >= 3 ) {
             var tagName = selector.substr(1, selector.length-2);
 
             if(_isValidElementName(tagName)) {
@@ -202,7 +201,7 @@ var JSimpler = (function() {
       var l = obj.length;
       for(; i<l; i++) {
         callback(obj, obj[i], i);
-      };
+      }
       return obj;
     },
 
@@ -211,7 +210,7 @@ var JSimpler = (function() {
       if(!this.selection) {
         return [];
       }
-      if(typeof index !== "undefined") {
+      if(typeof index !== 'undefined') {
         return this.selection[index];
       } else {
         return this.selection;
@@ -220,20 +219,20 @@ var JSimpler = (function() {
 
     // Get the immediately previous sibling
     prev: function() {
-      return _getElement(this, "previousElementSibling");
+      return _getElement(this, 'previousElementSibling');
     },
 
     // Get the immediately following sibling
     next: function() {
-      return _getElement(this, "nextElementSibling");
+      return _getElement(this, 'nextElementSibling');
     },
 
     // Set property to the element
     prop: function(obj, value) {
       return _param(this, obj, value, function(e, obj, value, type) {
-        if (type === "GET") {
+        if (type === 'GET') {
           return e.getAttribute(obj);
-        } else if (type === "SET") {
+        } else if (type === 'SET') {
           e.setAttribute(obj, value);
         }
       });
@@ -241,9 +240,9 @@ var JSimpler = (function() {
 
     css: function(obj, value) {
       return _param(this, obj, value, function(e, obj, value, type) {
-        if (type === "GET") {
+        if (type === 'GET') {
           return e.style[obj];
-        } else if (type === "SET") {
+        } else if (type === 'SET') {
           e.style[obj] = value;
         }
       });
@@ -285,7 +284,7 @@ var JSimpler = (function() {
       var classArr;
       var match = false;
       this.each(this, function(self, e, i) {
-        classArr = e.className.split(" ");
+        classArr = e.className.split(' ');
         if(classArr.indexOf(className) >= 0) {
           match = true;
           return;
@@ -311,22 +310,22 @@ var JSimpler = (function() {
 
     // Add the content to the BEGINING of each element in the set of matched elements
     prepend: function(content) {
-      return _addInto(this, content, "insertBefore");
+      return _addInto(this, content, 'insertBefore');
     },
 
     // Add the content to the END of each element in the set of matched elements
     append: function(content) {
-      return _addInto(this, content, "appendChild");
+      return _addInto(this, content, 'appendChild');
     },
 
     // Insert content, specified by the parameter, before each element in the set of matched elements.
     before: function(content) {
-      return _addSibling(this, content, "previousSibling");
+      return _addSibling(this, content, 'previousSibling');
     },
 
     // Insert content, specified by the parameter, after each element in the set of matched elements.
     after: function(content) {
-      return _addSibling(this, content, "nextSibling");
+      return _addSibling(this, content, 'nextSibling');
     },
 
     // Return first matched value or set value in the set of matched elements
@@ -347,19 +346,12 @@ var JSimpler = (function() {
       }
     }
 
-
   };
 
   // Static functions (dont need to create an JSimpler object instance)
   JSimpler.makeArray = function(obj) {
     return Array.prototype.slice.call(obj);
   };
-
-
-  JSimpler.hendler = function(){
-    return new JSimpler.hendler
-  }
-
 
 
   // Event Listeners
@@ -379,41 +371,51 @@ var JSimpler = (function() {
 
     // Original parameters (types, selector, data, handler)
     // At first it will contain only (types, handler)
-    on: function(types, handler) {
+    on: function(types, selector, handler) {
+      if(!handler) {
+        handler = selector;
+        selector = undefined;
+      }
       return this.each(this, function(self, e, i) {
-        if(typeof types === "string" && typeof handler === "function") {
-          var typesArr = types.split(" ");
+        if(typeof types === 'string' && typeof handler === 'function') {
+          var typesArr = types.split(' ');
           var handlersObj;
-          var i = 0;
+          var idx = 0;
           var l = typesArr.length;
+          //var delegated;
+          //if(selector) {
+          //  delegated = JSimpler(selector);
+          //  console.log('selector=' + selector);
+          //  console.log('delegated=' + delegated);
+          //
 
-          for(; i < l; i++) {
+          // Types cycle (['click', 'hover'])
+          for(; idx < l; idx++) {
+            // Creating a new handler function instance
             var newHandler = handler.bind({});
-
-            // Saving original hendlers and cloned handler objects
+            // Saving original handler and newly created handler functions
+            // Example: elemHandlers = {element: {'click': {handler: handler, newHandlers: [newHandler1, newHandler2, ...]}}}
             if(!elemHandlers[e]) {
               elemHandlers[e] = {};
             }
-            if(!elemHandlers[e][typesArr[i]]) {
-              elemHandlers[e][typesArr[i]] = [];
+            if(!elemHandlers[e][typesArr[idx]]) {
+              elemHandlers[e][typesArr[idx]] = [];
             }
-
-            handlersObj = elemHandlers[e][typesArr[i]];
+            handlersObj = elemHandlers[e][typesArr[idx]];
             var currentHandlers = self.getCurrentHandlers(handlersObj, handler);
             if(currentHandlers) {
               currentHandlers.newHandlers.push(newHandler);
             } else {
-              handlersObj.push({handler: handler, newHandlers: [newHandler]}); // Example: elemHandlers[divNodeObj]['click'][originalHendler] = [newHandler1, newHandler2, ...]
+              handlersObj.push({handler: handler, newHandlers: [newHandler]});
             }
-
+            // Adding Event Listener
             if(isIE) {
-              e.attachEvent( "on" + typesArr[i], newHandler);
+              e.attachEvent( 'on' + typesArr[idx], newHandler);
             } else {
-              e.addEventListener(typesArr[i], newHandler, false);
+              e.addEventListener(typesArr[idx], newHandler, false);
             }
           }
         }
-        console.log("!!!!! " + JSON.stringify(elemHandlers[e]));
       });
     },
 
@@ -422,54 +424,65 @@ var JSimpler = (function() {
         var typesArr;
         var handlersObj;
         var currentHandlers;
-        if(typeof types === "string" && typeof handler === "function") {
-          typesArr = types.split(" ");
-          //handlersObj = {handler};
-        } else if(typeof types === "string" && typeof handler === "undefined") {
-          typesArr = types.split(" ");
-        } else if(typeof types === "undefined") {
+        // If both arguments are passed
+        if(typeof types === 'string' && typeof handler === 'function') {
+          typesArr = types.split(' ');
+        // If first argument is passed
+        } else if(typeof types === 'string' && typeof handler === 'undefined') {
+          typesArr = types.split(' ');
+        // Without arguments
+        } else if(typeof types === 'undefined') {
           if(elemHandlers[e]) {
             typesArr = self.keys(elemHandlers[e]);
           }
         } else return;
 
         if(elemHandlers[e]) {
-          var i = 0;
+          var idx = 0;
           var l = typesArr.length;
-          // Method names cycle
-          for(; i < l; i++) {
-            handlersObj = elemHandlers[e][typesArr[i]];
+          // Types cycle (['click', 'hover'])
+          for(; idx < l; idx++) {
+            handlersObj = elemHandlers[e][typesArr[idx]];
+            // If no Event Listener to remove, than finish the iteration
             if(!handlersObj) {
               continue;
             }
             currentHandlers = self.getCurrentHandlers(handlersObj, handler);
 
-            // if we don't have passed 'handler' parameter
+            var handlerObjLen;
+            var k = 0;
+            // If we don't have passed 'handler' parameter
             if (!handler) {
-              var k = 0;
-              var handlerObjLen = handlersObj.length;
+              handlerObjLen = handlersObj.length;
               for(; k < handlerObjLen; k++) {
                 var r = 0;
-                var newHandlersLen = handlersObj[k].newHandlers.length;
+                newHandlersLen = handlersObj[k].newHandlers.length;
                 for(; r < newHandlersLen; r++) {
-                  e.removeEventListener(typesArr[i], handlersObj[k].newHandlers[r], false);
+                  if(e.removeEventListener) {
+                    e.removeEventListener(typesArr[idx], handlersObj[k].newHandlers[r], false);
+                  } else {
+                    element.detachEvent('on' + typesArr[idx], handlersObj[k].newHandlers[r]);
+                  }
                 }
               }
-            // if we have a mached handler
+            // If we have a mached handler
             } else if(currentHandlers && currentHandlers.newHandlers) {
-              var k = 0;
-              var newHandlersLen = currentHandlers.newHandlers.length;
+              newHandlersLen = currentHandlers.newHandlers.length;
               for(; k < newHandlersLen; k++) {
-                e.removeEventListener(typesArr[i], currentHandlers.newHandlers[k], false);
+                if(e.removeEventListener) {
+                  e.removeEventListener(typesArr[idx], currentHandlers.newHandlers[k], false);
+                } else {
+                  element.detachEvent('on' + typesArr[idx], currentHandlers.newHandlers[k]);
+                }
               }
             }
 
-            if(typeof types === "string" && typeof handler === "undefined") {
-              elemHandlers[e][typesArr[i]] = [];
+            if(typeof types === 'string' && typeof handler === 'undefined') {
+              elemHandlers[e][typesArr[idx]] = [];
             }
           }
         }
-        if(typeof types === "undefined") {
+        if(typeof types === 'undefined') {
           elemHandlers[e] = {};
         }
       });
@@ -478,33 +491,36 @@ var JSimpler = (function() {
     // Original parameters (type, data)
     trigger: function(type, data) {
       return this.each(this, function(self, e, i) {
-        var event; // The custom event that will be created
+        var newEvent; // The custom event that will be created
 
         if (document.createEvent) {
-          event = document.createEvent("HTMLEvents");
-          event.initEvent(type, true, true);
+          newEvent = document.createEvent('Event');
+          newEvent.initEvent(type, true, true);
         } else {
-          event = document.createEventObject();
-          event.eventType = type;
+          newEvent = document.createEventObject();
+          newEvent.eventType = type;
         }
 
-        event.eventName = type;
+        newEvent.eventName = type;
+        newEvent.preventDefault();
 
         if (document.createEvent) {
-          e.dispatchEvent(event);
+          e.dispatchEvent(newEvent);
         } else {
-          e.fireEvent("on" + event.eventType, event);
+          e.fireEvent('on' + newEvent.eventType, newEvent);
         }
       });
-    }
+    },
 
+    delegate: function(selector, types, handler) {
+      return this.on(types, selector, handler);
+    }
 
   });
 
-  JSimpler.fn.each( ("blur focus focusin focusout load resize scroll unload click dblclick " +
-    "mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
-    "change select submit keydown keypress keyup error contextmenu").split(" "), function(that, name, i) {
-    //console.log('i='+i+' e='+e);
+  JSimpler.fn.each( ('blur focus focusin focusout load resize scroll unload click dblclick ' +
+    'mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave ' +
+    'change select submit keydown keypress keyup error contextmenu').split(' '), function(that, name, i) {
 
     // Handle event binding
     JSimpler.fn[name] = function(data, handler) {
@@ -512,6 +528,52 @@ var JSimpler = (function() {
         this.on(name, handler) :
         this.trigger(name);
     };
+
+  });
+
+  JSimpler.fn.extend(JSimpler, {
+
+    bind: function(func, context) {
+
+      if(typeof arguments[0] !== "function") {
+        throw new TypeError("There is no way to create a bind function for the not callable object");
+      }
+      var bindArgs = [].slice.call(arguments, 2);
+
+      var fTmp = function() {};
+      var fBound = function() {
+        var args = [].slice.call(arguments);
+        var concatedArgs = bindArgs.concat(args);
+        return func.apply(context, concatedArgs);
+      };
+
+      fTmp.prototype = func.prototype;
+      fBound.prototype = new fTmp();
+
+      return fBound;
+    },
+
+    filter: function(arr, callback) {
+      if(!arr || !arr.length || isNaN(arr.length)) {
+        throw new TypeError("An array is expected as the first argument");
+      }
+
+      var len = arr.length;
+      if (typeof callback !== 'function') {
+        throw new TypeError("second argument should be a function");
+      }
+
+      var res = [];
+      for (var i = 0; i < len; i++) {
+        var val = arr[i];
+        if (callback.call(null, val, i, arr)) {
+          res.push(val);
+        }
+      }
+
+      return res;
+
+    }
 
   });
 
