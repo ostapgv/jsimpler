@@ -517,65 +517,26 @@ describe('JSimpler', function() {
       expect(methods.showLove.calls.count()).toEqual(1);
     });
 
-    // TODO fix
-    it('should not delegate an event to elements without a given css class name', function() {
-      $selectedElement.delegate('.ev', 'click', methods.showLove);
-
-      j('.other-ev').trigger('click');
-      j('.ev').trigger('click');
-
-      //expect(methods.showLove.calls.count()).toEqual(1);
-    });
-
-    // TODO fix
-    it('should delegate an event to elements that are added to the DOM to after delegate call', function() {
-      //$selectedElement.delegate('.new-element-class', 'click', methods.showLove);
-
-      //var newElement = document.createElement('div');
-      //newElement.className = 'new-element-class';
-      //$selectedElement.append(newElement);
-
-      //j(newElement).trigger('click');
-
-      j('#event table').delegate('.new-element-class', 'click', methods.showLove);
-      var tr = j('<tr>')
-          .addClass('new-element-class')
-          .append(
-            j('<td>').append('second row')
-          );
-      j('#event table').append(tr);
-      tr.trigger('click');
-
-      //expect(methods.showLove.calls.count()).toEqual(1);
-      //expect(methods.showLove.calls.count()).toEqual(1);
-    });
-
-
   });
+
 
   describe('Helper Function', function() {
     var cat, dog, bound;
 
     beforeEach(function() {
-      //$selectedElement = j('#helpers');
-      //selectedElement = $selectedElement[0];
-
       cat = {
         happiness: 0,
-
         makeHappier: function(value, ectraHappiness) {
           this.happiness += value || 1;
           this.happiness += ectraHappiness * 10 || 0;
           return this.happiness;
         },
-
         checkHappiness: function() {
           return this.happiness;
         }
       };
 
       dog = { happiness: 10};
-
     });
 
     it('bind(fun, context) should pass the context to the function',function(){
@@ -606,7 +567,7 @@ describe('JSimpler', function() {
       expect(bound.prototype.constructor).toBe(Animal);
     });
 
-    it("filter() should create new array with all elements checked by callback function", function () {
+    it("filter(arr, callback) should create new array with all elements checked by callback function", function () {
       var arr = [0, 1, 2, 3];
       var result = j.filter(arr, function(value, index, array) {
         return value % 2 === 0;
@@ -615,6 +576,46 @@ describe('JSimpler', function() {
       expect(result).toEqual([0, 2]);
     });
 
+    it("clone(obj) should create a copy of passed object", function () {
+      var arr = [0, 1, 2, 3];
+      var arrCopy = j.clone(arr);
+      expect(arr).not.toBe(arrCopy);
+      expect(arr).toEqual(arrCopy);
+
+      var obj = {a: 1, b: 2, c: 3};
+      var objCopy = j.clone(obj);
+      expect(obj).not.toBe(objCopy);
+      expect(obj).toEqual(objCopy);
+
+      obj = {a: 1, b: 2, c: 3, d: {e: 4}};
+      objCopy = j.clone(obj);
+
+      expect(obj).not.toBe(objCopy);
+      expect(obj).toEqual(objCopy);
+      // Change initial obj deep value
+      obj.d.e = 5;
+      // Check that the copy is not deep and the objCopy is also has been changed by the ref
+      expect(obj).not.toBe(objCopy);
+      expect(obj).toEqual(objCopy);
+    });
+
+    it("deepClone(obj) should create a deep copy of passed object", function () {
+      var arr = [0, 1, {a: [1, 3, 4]}, 3];
+      var arrCopy = j.deepClone(arr);
+      expect(arr).not.toBe(arrCopy);
+      expect(arr).toEqual(arrCopy);
+
+      var obj = {a: 1, b: 2, c: 3, d: {e: 4}};
+      var objCopy = j.deepClone(obj);
+
+      expect(obj).not.toBe(objCopy);
+      expect(obj).toEqual(objCopy);
+      // Change initial obj deep value
+      obj.d.e = 5;
+      // Check that the copy is deep and there is no changes in the objCopy onject
+      expect(obj).not.toBe(objCopy);
+      expect(obj).not.toEqual(objCopy);
+    });
 
   });
 

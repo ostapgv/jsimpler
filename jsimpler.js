@@ -10,11 +10,6 @@ var JSimpler = (function() {
   var isIE = msie > 0;
   var elemHandlers = {};
 
-  // TODO use these RE to speed up selecting
-  var idSel = /^#([\w-]+)$/,
-      tagSel = /^(\w+)$/,
-      classSel = /^\.([\w-]+)$/;
-
   // Wrapper
   var JSimpler = function(selector) {
     return new JSimpler.fn.init(selector);
@@ -110,7 +105,7 @@ var JSimpler = (function() {
       this.length = 0;
       this.selection = [];
 
-      // TODO Check if 'window.document' object exist. (it doesn't work with the Jasmine)
+      // Check if 'window.document' object exist
       if (!window || !window.document) {
         throw new Error( 'JSimpler requires a window with a document' );
       }
@@ -137,7 +132,6 @@ var JSimpler = (function() {
 
           //### Getting matched elements array ###
           // Storing array of selected DOM-elements
-          // TODO Delete this.selection. Object should not stores few copies of the same data
           this.selection = document.querySelectorAll(selector);
           // Storing selected DOM-elements to the wrapper object as the array-like object
           this.length = 0;
@@ -153,20 +147,7 @@ var JSimpler = (function() {
 
     },
 
-    // Merging two elements and return first one
-    // NOTE no usages right now (the function not uses this keyword. Probably it should be moved to common functions)
-    merge: function(first, second) {
-      var len = +second.length,
-        i = 0,
-        j = 0;
-
-      while (i < len) {
-        first[i++] = second[j++];
-      }
-      first.length = j;
-      return first;
-    },
-
+    // Return an array of the passed object keys
     keys: function(o) {
       if (Object.keys) {
         return Object.keys(o);
@@ -183,7 +164,7 @@ var JSimpler = (function() {
       return k;
     },
 
-    // Extending first passed object pataneter by others
+    // Extending first passed object parameter by others
     extend: function() {
       for(var i=1; i<arguments.length; i++) {
         for(var key in arguments[i]) {
@@ -238,6 +219,7 @@ var JSimpler = (function() {
       });
     },
 
+    // Set css styles to the element
     css: function(obj, value) {
       return _param(this, obj, value, function(e, obj, value, type) {
         if (type === 'GET') {
@@ -348,16 +330,11 @@ var JSimpler = (function() {
 
   };
 
-  // Static functions (dont need to create an JSimpler object instance)
-  JSimpler.makeArray = function(obj) {
-    return Array.prototype.slice.call(obj);
-  };
-
 
   // Event Listeners
   JSimpler.fn.extend(JSimpler.fn, {
 
-    getCurrentHandlers: function(handlersObj, handler) {
+    _getCurrentHandlers: function(handlersObj, handler) {
       if(handlersObj && handler) {
         var i = 0;
         var l = handlersObj.length;
@@ -369,8 +346,7 @@ var JSimpler = (function() {
       }
     },
 
-    // Original parameters (types, selector, data, handler)
-    // At first it will contain only (types, handler)
+    // Attaching event listeners
     on: function(types, selector, handler) {
       if(!handler) {
         handler = selector;
@@ -382,19 +358,14 @@ var JSimpler = (function() {
           var handlersObj;
           var idx = 0;
           var l = typesArr.length;
-          //var delegated;
-          //if(selector) {
-          //  delegated = JSimpler(selector);
-          //  console.log('selector=' + selector);
-          //  console.log('delegated=' + delegated);
-          //
+          var delegated;
 
-          // Types cycle (['click', 'hover'])
+          // Types cycle (Example: ['click', 'hover'])
           for(; idx < l; idx++) {
             // Creating a new handler function instance
             var newHandler = handler.bind({});
             // Saving original handler and newly created handler functions
-            // Example: elemHandlers = {element: {'click': {handler: handler, newHandlers: [newHandler1, newHandler2, ...]}}}
+            // Example: elemHandlers = {element: {'click': {handler: handler, newHandlers: [newHandler1, newHandler2, ...], se}}}
             if(!elemHandlers[e]) {
               elemHandlers[e] = {};
             }
@@ -402,11 +373,13 @@ var JSimpler = (function() {
               elemHandlers[e][typesArr[idx]] = [];
             }
             handlersObj = elemHandlers[e][typesArr[idx]];
-            var currentHandlers = self.getCurrentHandlers(handlersObj, handler);
+            var currentHandlers = self._getCurrentHandlers(handlersObj, handler);
             if(currentHandlers) {
-              currentHandlers.newHandlers.push(newHandler);
+              finalObj = currentHandlers.newHandlers.push(newHandler);
+              if(selector) currentHandlers.delegate = selector;
             } else {
               handlersObj.push({handler: handler, newHandlers: [newHandler]});
+              if(selector) handlersObj.delegate = selector;
             }
             // Adding Event Listener
             if(isIE) {
@@ -419,6 +392,7 @@ var JSimpler = (function() {
       });
     },
 
+    // Removing event listeners
     off: function(types, handler) {
       return this.each(this, function(self, e, i) {
         var typesArr;
@@ -447,7 +421,7 @@ var JSimpler = (function() {
             if(!handlersObj) {
               continue;
             }
-            currentHandlers = self.getCurrentHandlers(handlersObj, handler);
+            currentHandlers = self._getCurrentHandlers(handlersObj, handler);
 
             var handlerObjLen;
             var k = 0;
@@ -488,8 +462,8 @@ var JSimpler = (function() {
       });
     },
 
-    // Original parameters (type, data)
-    trigger: function(type, data) {
+    // Trigger event by it's name
+    trigger: function(type) {
       return this.each(this, function(self, e, i) {
         var newEvent; // The custom event that will be created
 
@@ -512,12 +486,14 @@ var JSimpler = (function() {
       });
     },
 
+    // Event listeners delegation (not finished)
     delegate: function(selector, types, handler) {
       return this.on(types, selector, handler);
     }
 
   });
 
+  // Creating shorthand functions for every event
   JSimpler.fn.each( ('blur focus focusin focusout load resize scroll unload click dblclick ' +
     'mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave ' +
     'change select submit keydown keypress keyup error contextmenu').split(' '), function(that, name, i) {
@@ -533,6 +509,7 @@ var JSimpler = (function() {
 
   JSimpler.fn.extend(JSimpler, {
 
+    // Create bind function with the same body and this=context
     bind: function(func, context) {
 
       if(typeof arguments[0] !== "function") {
@@ -553,6 +530,7 @@ var JSimpler = (function() {
       return fBound;
     },
 
+    // Return filtered array with elements filtered by the callback function
     filter: function(arr, callback) {
       if(!arr || !arr.length || isNaN(arr.length)) {
         throw new TypeError("An array is expected as the first argument");
@@ -573,7 +551,81 @@ var JSimpler = (function() {
 
       return res;
 
+    },
+
+    // Check if passed object is simple
+    hasSimpleType: function(obj) {
+      // Handle the 3 simple types (String, Number, Boolean), and null or undefined
+      return (obj === null || obj ===undefined || typeof obj != "object") ? true : false;
+    },
+
+    // Clone object
+    clone: function(obj) {
+      if (JSimpler.hasSimpleType(obj)) return obj;
+      var copy = obj.constructor();
+      for (var attr in obj) {
+        if (obj.hasOwnProperty(attr)) {
+          copy[attr] = obj[attr];
+        }
+      }
+      return copy;
+    },
+
+    // Deep object cloning
+    deepClone: function(obj) {
+      var copy;
+
+      // Handle the simple types, null, undefined
+      if (JSimpler.hasSimpleType(obj)) return obj;
+
+      // Handle Date
+      if (obj instanceof Date) {
+        copy = new Date();
+        copy.setTime(obj.getTime());
+        return copy;
+      }
+
+      // Handle Array
+      if (obj instanceof Array) {
+        copy = [];
+        var i = 0;
+        var l = obj.length;
+        for (; i < l; i++) {
+          copy[i] = JSimpler.deepClone(obj[i]);
+        }
+        return copy;
+      }
+
+      // Handle Object
+      if (obj instanceof Object) {
+        copy = {};
+        for (var attr in obj) {
+          if (obj.hasOwnProperty(attr)) {
+            copy[attr] = JSimpler.deepClone(obj[attr]);
+          }
+        }
+        return copy;
+      }
+
+      throw new Error("Unable to copy obj! Its type isn't supported.");
+    },
+
+    // Merging two elements and return first one
+    merge: function(first, second) {
+      var len = +second.length,
+        i = 0,
+        j = 0;
+      while (i < len) {
+        first[i++] = second[j++];
+      }
+      first.length = j;
+      return first;
+    },
+
+    makeArray: function(obj) {
+      return Array.prototype.slice.call(obj);
     }
+
 
   });
 
